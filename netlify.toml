@@ -6,9 +6,7 @@
   # This is the command Netlify will run to build your frontend.
   command = "npm run build"
   # This is the directory that contains the built assets, relative to the 'base' directory.
-  publish = "client/dist"
-  # Tell Netlify to ignore the Clerk publishable key during secret scanning.
-  ignore_secrets = ["VITE_CLERK_PUBLISHABLE_KEY"]
+  publish = "dist"
 
 # Proxy API requests to your backend server on Render.
 [[redirects]]
