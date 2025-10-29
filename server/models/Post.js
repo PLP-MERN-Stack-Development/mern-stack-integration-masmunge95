@@ -20,8 +20,6 @@ const PostSchema = new mongoose.Schema(
     },
     slug: {
       type: String,
-      required: true,
-      unique: true,
     },
     excerpt: {
       type: String,
@@ -30,7 +28,6 @@ const PostSchema = new mongoose.Schema(
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
     },
     category: {
       type: mongoose.Schema.Types.ObjectId,
@@ -38,9 +35,10 @@ const PostSchema = new mongoose.Schema(
       required: true,
     },
     tags: [String],
-    isPublished: {
-      type: Boolean,
-      default: false,
+    status: {
+      type: String,
+      enum: ['draft', 'published', 'archived'],
+      default: 'draft',
     },
     viewCount: {
       type: Number,
@@ -77,6 +75,30 @@ PostSchema.pre('save', function (next) {
     .replace(/[^\w ]+/g, '')
     .replace(/ +/g, '-');
     
+  next();
+});
+
+// Extract excerpt from content before saving
+PostSchema.pre('save', function (next) {
+  if (!this.isModified('content')) {
+    return next();
+  }
+
+  this.excerpt = this.content.substring(0, 197) + (this.content.length > 200 ? '...' : '');
+  next();
+});
+
+// Extract author info when populating
+PostSchema.pre(/^find/, function (next) {
+  this.populate({ path: 'author', select: 'name email' });
+  next();
+});
+
+// Generate SEO-friendly tags before saving
+PostSchema.pre('save', function (next) {
+  if (this.tags && this.tags.length > 0) {
+    this.tags = this.tags.map(tag => tag.toLowerCase().replace(/[^\w ]+/g, '').replace(/ +/g, '-'));
+  }
   next();
 });
 
