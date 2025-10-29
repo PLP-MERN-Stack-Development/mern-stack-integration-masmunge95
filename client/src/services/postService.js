@@ -1,55 +1,59 @@
 // src/services/postService.js
 import api from './api';
 
+const getAuthConfig = async (getToken) => {
+  if (!getToken) return {};
+  const token = await getToken();
+  return { headers: { Authorization: `Bearer ${token}` } };
+};
+
 // Post API services
 export const postService = {
   // Get all posts with optional pagination and filters
-  getAllPosts: async (page = 1, limit = 10, category = null) => {
+  getAllPosts: async (getToken, page = 1, limit = 10, category = null) => {
     let url = `/posts?page=${page}&limit=${limit}`;
     if (category) {
       url += `&category=${category}`;
     }
-    const response = await api.get(url);
+    const config = await getAuthConfig(getToken);
+    const response = await api.get(url, config);
     return response.data;
   },
 
   // Get a single post by ID or slug
-  getPost: async (idOrSlug) => {
-    const response = await api.get(`/posts/${idOrSlug}`);
+  getPost: async (idOrSlug, getToken) => {
+    const config = await getAuthConfig(getToken);
+    const response = await api.get(`/posts/${idOrSlug}`, config);
     return response.data;
   },
 
   // Create a new post
-  createPost: async (postData) => {
-    const response = await api.post('/posts', postData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+  createPost: async (postData, getToken) => {
+    const config = await getAuthConfig(getToken);
+    const response = await api.post('/posts', postData, config);
     return response.data;
   },
 
   // Update an existing post
-  updatePost: async (id, postData) => {
-    const response = await api.put(`/posts/${id}`, postData);
+  updatePost: async (id, postData, getToken) => {
+    const config = await getAuthConfig(getToken);
+    const response = await api.put(`/posts/${id}`, postData, config);
     return response.data;
   },
 
   // Delete a post
-  deletePost: async (id) => {
-    const response = await api.delete(`/posts/${id}`);
+  deletePost: async (id, getToken) => {
+    const config = await getAuthConfig(getToken);
+    const response = await api.delete(`/posts/${id}`, config);
     return response.data;
   },
 
-  // Add a comment to a post
-  addComment: async (postId, commentData) => {
-    const response = await api.post(`/posts/${postId}/comments`, commentData);
-    return response.data;
-  },
-
-  // Search posts
-  searchPosts: async (query) => {
-    const response = await api.get(`/posts/search?q=${query}`);
+  // Upload an image
+  uploadImage: async (formData, getToken) => {
+    const config = await getAuthConfig(getToken);
+    // For FormData, we must let the browser set the Content-Type header
+    delete config.headers?.['Content-Type'];
+    const response = await api.post('/upload', formData, config);
     return response.data;
   },
 };

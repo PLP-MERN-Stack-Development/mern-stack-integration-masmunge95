@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { categoryService } from '@/services/categoryService';
 import CategoryForm from '@/components/CategoryForm';
+import { categoryService } from '@/services/categoryService';
+import { useAuth } from '@clerk/clerk-react';
 import CategoryCard from '@/components/CategoryCard';
 import Button from '@/components/Button';
 
@@ -9,6 +10,7 @@ import Button from '@/components/Button';
  */
 const CategoryManager = () => {
     const [categories, setCategories] = useState([]);
+    const { getToken } = useAuth();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isAdding, setIsAdding] = useState(false);
@@ -32,13 +34,13 @@ const CategoryManager = () => {
             }
         };
         loadCategories();
-    }, []);
+    }, [getToken]);
 
     const handleAddCategory = async (categoryData) => {
         try {
             setIsAdding(true);
             setError(null);
-            const newCategory = await categoryService.createCategory(categoryData);
+            const newCategory = await categoryService.createCategory(categoryData, getToken);
             setCategories((prev) => [newCategory, ...prev]);
         } catch (err) {
             setError(`Failed to add category: ${err.message}`);
@@ -50,7 +52,7 @@ const CategoryManager = () => {
     const handleUpdateCategory = async (id, updates) => {
         try {
             setError(null);
-            const updatedCategory = await categoryService.updateCategory(id, updates);
+            const updatedCategory = await categoryService.updateCategory(id, updates, getToken);
             setCategories((prev) => prev.map((cat) => (cat._id === id ? updatedCategory : cat)));
         } catch (err) {
             setError(`Failed to update category: ${err.message}`);
@@ -61,7 +63,7 @@ const CategoryManager = () => {
         if (!window.confirm('Are you sure you want to delete this category? This might affect existing posts.')) return;
         try {
             setError(null);
-            await categoryService.deleteCategory(id);
+            await categoryService.deleteCategory(id, getToken);
             setCategories((prev) => prev.filter((cat) => cat._id !== id));
         } catch (err) {
             setError(`Failed to delete category: ${err.message}`);

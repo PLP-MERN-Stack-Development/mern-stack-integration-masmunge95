@@ -1,29 +1,33 @@
-// src/services/categoryService.js
 import api from './api';
 
-// Category API services
+const getAuthConfig = async (getToken) => {
+  if (!getToken) return {};
+  const token = await getToken();
+  return { headers: { Authorization: `Bearer ${token}` } };
+};
+
 export const categoryService = {
-  // Get all categories
   getAllCategories: async () => {
+    // This is likely a public endpoint, so no auth is needed.
     const response = await api.get('/categories');
     return response.data;
   },
 
-  // Create a new category
-  createCategory: async (categoryData) => {
-    const response = await api.post('/categories', categoryData);
+  createCategory: async (categoryData, getToken) => {
+    const config = await getAuthConfig(getToken);
+    const response = await api.post('/categories', categoryData, config);
     return response.data;
   },
 
-  // Update a category
-  updateCategory: async (id, categoryData) => {
-    const response = await api.put(`/categories/${id}`, categoryData);
+  updateCategory: async (id, categoryData, getToken) => {
+    const config = await getAuthConfig(getToken);
+    const response = await api.put(`/categories/${id}`, categoryData, config);
     return response.data;
   },
 
-  // Delete a category
-  deleteCategory: async (id) => {
-    const response = await api.delete(`/categories/${id}`);
+  deleteCategory: async (id, getToken) => {
+    const config = await getAuthConfig(getToken);
+    const response = await api.delete(`/categories/${id}`, config);
     return response.data;
   },
 };

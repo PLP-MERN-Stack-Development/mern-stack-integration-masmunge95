@@ -4,16 +4,6 @@ import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig, loadEnv } from "vite"
 
-// Determine API origin (used for CSP and dev proxy). Prefer VITE_API_URL when provided.
-const rawApi = process.env.VITE_API_URL || 'http://localhost:5000';
-let apiOrigin;
-try {
-  apiOrigin = new URL(rawApi).origin;
-} catch (e) {
-  // fallback: strip trailing slash if it's not a full URL
-  apiOrigin = rawApi.replace(/\/$/, '');
-}
-
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Load env variables the Vite way so VITE_ variables match import.meta.env in the client
@@ -23,6 +13,7 @@ export default defineConfig(({ mode }) => {
   try {
     apiOrigin = new URL(rawApi).origin;
   } catch (e) {
+    // fallback: strip trailing slash if it's not a full URL
     apiOrigin = rawApi.replace(/\/$/, '');
   }
 
@@ -44,7 +35,7 @@ export default defineConfig(({ mode }) => {
                 "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.com",
                 "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.com",
                 "style-src 'self' 'unsafe-inline'",
-                `img-src 'self' data: https://*.clerk.com https://*.clerk.accounts.dev https://clerk.com https://clerk-telemetry.com ${apiOrigin}`,
+                `img-src 'self' data: blob: https://*.clerk.com https://*.clerk.accounts.dev https://clerk.com https://clerk-telemetry.com ${apiOrigin}`,
                 "font-src 'self' data:",
                 "worker-src 'self' blob:"
               ].join('; ')
@@ -55,7 +46,7 @@ export default defineConfig(({ mode }) => {
       },
     ],
     resolve: {
-      alias: [{ find: '@', replacement: path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'src') }],
+      alias: { '@': path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'src') },
     },
     server: {
       proxy: {

@@ -6,11 +6,18 @@ import { getFullImageUrl } from '@/services/api';
 export default function PostCard({ post, categories = [], onUpdate, onDelete }) {
     const [isEditing, setIsEditing] = useState(false);
     const [draft, setDraft] = useState({ ...post });
+    const [imagePreview, setImagePreview] = useState(null);
 
     // When the post prop changes, reset the draft state to prevent stale data
     useEffect(() => {
         setDraft({ ...post });
-    }, [post]);
+        // Clean up the object URL to avoid memory leaks
+        return () => {
+            if (imagePreview) {
+                URL.revokeObjectURL(imagePreview);
+            }
+        };
+    }, [post]); // Run only when the post prop changes
 
     const handleEditClick = () => {
         // Reset draft to current post state when starting to edit
@@ -21,6 +28,7 @@ export default function PostCard({ post, categories = [], onUpdate, onDelete }) 
 
     const handleCancel = () => {
         setIsEditing(false);
+        setImagePreview(null); // Clear preview on cancel
     };
 
     const handleSave = (e) => {
@@ -35,8 +43,14 @@ export default function PostCard({ post, categories = [], onUpdate, onDelete }) 
     };
 
     const handleFileChange = (e) => {
-        setDraft({ ...draft, featuredImage: e.target.files[0] });
+        const file = e.target.files[0];
+        if (file) {
+            setDraft(prev => ({ ...prev, featuredImage: file }));
+            setImagePreview(URL.createObjectURL(file));
+        }
     };
+
+    const imageUrl = getFullImageUrl(post.featuredImage);
 
     return (
         <div className="rounded-lg shadow-md p-6">
@@ -55,7 +69,7 @@ export default function PostCard({ post, categories = [], onUpdate, onDelete }) 
                                 {post.status}
                             </span>
                         </div>
-                        {post.featuredImage && <img src={getFullImageUrl(post.featuredImage)} alt={post.title} className="mt-4 w-full h-48 object-cover rounded-md" />}
+                        {imageUrl && <img src={imageUrl} alt={post.title} className="mt-4 w-full h-48 object-cover rounded-md" />}
                         {post.content && <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{post.content}</p>}
                     </div>
                     <div className="flex flex-wrap gap-2 mt-2">
@@ -87,6 +101,12 @@ export default function PostCard({ post, categories = [], onUpdate, onDelete }) 
                         onChange={handleInputChange}
                         placeholder="Enter post content"
                     />
+                    {(imagePreview || imageUrl) && (
+                        <div className="my-2">
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image Preview:</p>
+                            <img src={imagePreview || imageUrl} alt="Preview" className="w-full h-48 object-cover rounded-md" />
+                        </div>
+                    )}
                     <input
                         type="file"
                         name="featuredImage"

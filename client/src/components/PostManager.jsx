@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '@clerk/clerk-react';
 import PostForm from '@/components/PostForm';
 import PostCard from '@/components/PostCard';
 import { postService } from '@/services/postService';
 import { categoryService } from '@/services/categoryService';
-
 import Button from '@/components/Button';
 import { useSmoothScroll } from '../hooks/UseSmoothScroll';
 
@@ -12,6 +12,7 @@ import { useSmoothScroll } from '../hooks/UseSmoothScroll';
  */
 const PostManager = () => {
   const [posts, setPosts] = useState([]);
+  const { getToken } = useAuth();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,12 +36,12 @@ const PostManager = () => {
       try {
         setLoading(true);
         setError(null); // Clear previous errors
-        const [fetchedPosts, fetchedCategories] = await Promise.all([
-          postService.getAllPosts(),
-          categoryService.getAllCategories(),
+        const [postsData, categoriesData] = await Promise.all([
+          postService.getAllPosts(getToken), // Authenticated call
+          categoryService.getAllCategories(),      // Public call, no auth needed
         ]);
-        setPosts(fetchedPosts.posts || []);
-        setCategories(fetchedCategories.categories || []);
+        setPosts(postsData.posts || []);
+        setCategories(categoriesData.categories || []);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError(`Failed to load data: ${err.message}`);
@@ -49,7 +50,7 @@ const PostManager = () => {
       }
     };
     loadData();
-  }, []);
+  }, [getToken]);
 
   // Reset to first page when filter changes
   useEffect(() => {
@@ -70,7 +71,7 @@ const PostManager = () => {
         formData.append('image', postData.featuredImage);
       }
 
-      const newPost = await postService.createPost(formData);
+      const newPost = await postService.createPost(formData, getToken);
       setPosts((prevPosts) => [newPost, ...prevPosts]);
     } catch (err) {
       console.error("Error adding post:", err);
@@ -81,21 +82,33 @@ const PostManager = () => {
   };
 
   const handleUpdatePost = async (id, updates) => {
+    // Find the original post to get its current image path
+    const originalPost = posts.find(p => p._id === id);
     const originalPosts = [...posts];
-    setPosts(posts.map(p => p._id === id ? { ...p, ...updates } : p));
     setError(null); // Clear previous errors
-
-    const formData = new FormData();
-    for (const key in updates) {
-      if (key === 'featuredImage' && updates.featuredImage instanceof File) {
-        formData.append('image', updates.featuredImage);
-      } else if (updates[key] != null) {
-        formData.append(key, updates[key]);
-      }
-    }
-
+  
     try {
-      await postService.updatePost(id, formData);
+      let imageUrl = originalPost.image; // Default to the existing image
+      const postUpdateData = { ...updates }; // Create a mutable copy of the updates
+  
+      // Step 1: If a new image file is included in the updates, upload it first.
+      if (updates.featuredImage && updates.featuredImage instanceof File) {
+        const imageFormData = new FormData();
+        imageFormData.append('image', updates.featuredImage);
+  
+        // Use the dedicated upload endpoint
+        const uploadResponse = await postService.uploadImage(imageFormData, getToken);
+        postUpdateData.image = uploadResponse.filePath; // Set the new image path for the final update
+      }
+  
+      // The 'featuredImage' property is a client-side file object and should not be sent to the backend.
+      delete postUpdateData.featuredImage;
+  
+      // Optimistically update the UI
+      setPosts(posts.map(p => p._id === id ? { ...p, ...postUpdateData } : p));
+  
+      // Step 3: Send the final update request with JSON data.
+      await postService.updatePost(id, postUpdateData, getToken);
     } catch (err) {
       console.error("Error updating post:", err);
       setError(`Failed to update post. Reverting changes: ${err.message}`);
@@ -109,7 +122,7 @@ const PostManager = () => {
     setPosts(posts.filter((post) => post._id !== id)); 
     try {
       setError(null); // Clear previous errors
-      await postService.deletePost(id);
+      await postService.deletePost(id, getToken);
     } catch (err) {
       console.error("Error deleting post:", err);
       setError(`Failed to delete post: ${err.message}`);
