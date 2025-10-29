@@ -31,7 +31,7 @@ The project serves as a comprehensive demonstration of MERN stack integration â€
 
 ## Screenshots
 
-*(Add screenshots of your application here. For example: Task list view, Add task form, API posts view, etc.)*
+*(Add screenshots of your application here.)*
 
 ![MERN Blog Manager Desktop View](client/public/Desktop-view.png)
 ![MERN Blog Manager Small-screen View View](client/public/Small-screen-view.png)
