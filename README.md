@@ -33,11 +33,11 @@ The project serves as a comprehensive demonstration of MERN stack integration â€
 
 | Home Desktop View | Home Small-screen View |
 |:----------------:|:---------------------:|
-| <img src="client/public/Home-desktop-view.jpeg" alt="MERN Blog Manager Home Page Desktop View" width="300" /> | <img src="client/public/Home-small-view.png" alt="MERN Blog Manager Home Page Small-screen View" width="180" /> |
+| <img src="client/public/Home-desktop-view.jpeg" alt="MERN Blog Manager Home Page Desktop View" height="220" /> | <img src="client/public/Home-small-view.png" alt="MERN Blog Manager Home Page Small-screen View" height="220" /> |
 
 | Clerk Login | Dashboard Desktop View | Dashboard Small-screen View |
 |:-----------:|:---------------------:|:--------------------------:|
-| <img src="client/public/Clerk-login.png" alt="MERN Blog Manager Clerk Login Page" width="220" /> | <img src="client/public/Dashboard-desktop-view.jpeg" alt="MERN Blog Manager Dashboard Desktop View" width="300" /> | <img src="client/public/Dashboard-small-view.jpeg" alt="MERN Blog Manager Dashboard Small-screen View" width="180" /> |
+| <img src="client/public/Clerk-login.png" alt="MERN Blog Manager Clerk Login Page" height="220" /> | <img src="client/public/Dashboard-desktop-view.jpeg" alt="MERN Blog Manager Dashboard Desktop View" height="220" /> | <img src="client/public/Dashboard-small-view.jpeg" alt="MERN Blog Manager Dashboard Small-screen View" height="220" /> |
 
 ## Project Structure
 
