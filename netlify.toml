@@ -1,0 +1,21 @@
+# Netlify configuration for the MERN Blog project
+
+[build]
+  # This is the directory where Netlify will run the build command.
+  base = "client"
+  # This is the command Netlify will run to build your frontend.
+  command = "npm run build"
+  # This is the directory that contains the built assets, relative to the 'base' directory.
+  publish = "client/dist"
+
+# Proxy API requests to your backend server on Render.
+[[redirects]]
+  from = "/api/*"
+  to = "https://mern-stack-integration-masmunge95.onrender.com/api/:splat"
+  status = 200
+
+# SPA fallback: Redirect all other requests to index.html so client-side routing works.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
