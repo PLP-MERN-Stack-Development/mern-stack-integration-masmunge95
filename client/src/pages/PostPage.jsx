@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import api, { getFullImageUrl } from '@/services/api';
 import { postService } from '@/services/postService';
 
 /**
@@ -43,7 +44,7 @@ export default function PostPage() {
     return (
         <article className="max-w-4xl mx-auto p-8  rounded-lg shadow-xl">
             {post.featuredImage && post.featuredImage !== 'default-post.jpg' && (
-                <img src={post.featuredImage} alt={post.title} className="w-full h-auto max-h-96 object-cover rounded-lg mb-6" />
+                <img src={getFullImageUrl(post.featuredImage)} alt={post.title} className="w-full h-auto max-h-96 object-cover rounded-lg mb-6" />
             )}
             <h1 className="text-4xl font-extrabold mb-4 ">{post.title}</h1>
             <div className="prose dark:prose-invert max-w-none text-lg" dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />') }} />

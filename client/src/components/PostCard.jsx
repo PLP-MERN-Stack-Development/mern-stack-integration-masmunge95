@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Button from '@/components/Button';
 import { Link } from 'react-router-dom';
+import { getFullImageUrl } from '@/services/api';
 
 export default function PostCard({ post, categories = [], onUpdate, onDelete }) {
     const [isEditing, setIsEditing] = useState(false);
@@ -54,7 +55,7 @@ export default function PostCard({ post, categories = [], onUpdate, onDelete }) 
                                 {post.status}
                             </span>
                         </div>
-                        {post.featuredImage && <img src={post.featuredImage} alt={post.title} className="mt-4 w-full h-48 object-cover rounded-md" />}
+                        {post.featuredImage && <img src={getFullImageUrl(post.featuredImage)} alt={post.title} className="mt-4 w-full h-48 object-cover rounded-md" />}
                         {post.content && <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{post.content}</p>}
                     </div>
                     <div className="flex flex-wrap gap-2 mt-2">

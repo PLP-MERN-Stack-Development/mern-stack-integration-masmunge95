@@ -12,6 +12,14 @@ const baseURL = rawBase.endsWith('/api')
   ? rawBase
   : rawBase.replace(/\/$/, '') + '/api';
 
+// Helper function to get full URL for uploaded files
+export const getFullImageUrl = (imagePath) => {
+  if (!imagePath) return '';
+  if (imagePath.startsWith('http')) return imagePath;
+  const apiBaseUrl = rawBase.replace('/api', '');
+  return `${apiBaseUrl}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+};
+
 const api = axios.create({
   baseURL,
   headers: {
