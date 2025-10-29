@@ -17,7 +17,7 @@ export default defineConfig({
             'Content-Security-Policy',
             [
               "default-src 'self' http://localhost:5000",
-              "connect-src 'self' http://localhost:5000 https://*.clerk.com https://*.clerk.accounts.dev wss://*.clerk.accounts.dev https://clerk.com https://clerk-telemetry.com https://*.clerk-telemetry.com",
+              "connect-src 'self' http://localhost:5000 https://mern-stack-integration-masmunge95.onrender.com https://*.clerk.com https://*.clerk.accounts.dev wss://*.clerk.accounts.dev https://clerk.com https://clerk-telemetry.com https://*.clerk-telemetry.com",
               "frame-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.com",
               // allow script elements explicitly (some browsers treat script-src-elem separately)
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.com",

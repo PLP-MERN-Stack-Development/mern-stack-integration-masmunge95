@@ -3,8 +3,17 @@
 import axios from 'axios';
 
 // Create axios instance with base URL
+// Create axios instance with base URL.
+// Prefer VITE_API_URL when provided. If not present (e.g. you didn't set it on Render),
+// fall back to the current page origin (window.location.origin) so the client will
+// call the same host that served the frontend. As a final fallback use localhost.
+const rawBase = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5000');
+const baseURL = rawBase.endsWith('/api')
+  ? rawBase
+  : rawBase.replace(/\/$/, '') + '/api';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

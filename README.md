@@ -7,7 +7,7 @@ The project serves as a comprehensive demonstration of MERN stack integration â€
 ## Deployment
 
 - **Frontend (Netlify):** [https://your-netlify-app-name.netlify.app/](https://your-netlify-app-name.netlify.app/)
-- **Backend (Render):** [https://your-render-app-name.onrender.com/](https://your-render-app-name.onrender.com/)
+- **Backend (Render):** [https://mern-stack-integration-masmunge95.onrender.com/](https://mern-stack-integration-masmunge95.onrender.com/)
 
 ## Features
 
@@ -33,8 +33,8 @@ The project serves as a comprehensive demonstration of MERN stack integration â€
 
 *(Add screenshots of your application here. For example: Task list view, Add task form, API posts view, etc.)*
 
-![Task Manager Desktop View](public/Desktop-view.png)
-![Task Manager Small-screen View View](public/Small-screen-view.png)
+![MERN Blog Manager Desktop View](client/public/Desktop-view.png)
+![MERN Blog Manager Small-screen View View](client/public/Small-screen-view.png)
 
 ## Project Structure
 
