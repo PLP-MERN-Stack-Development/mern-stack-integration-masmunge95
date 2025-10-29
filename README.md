@@ -6,7 +6,7 @@ The project serves as a comprehensive demonstration of MERN stack integration â€
 
 ## Deployment
 
-- **Frontend (Netlify):** [https://your-netlify-app-name.netlify.app/](https://your-netlify-app-name.netlify.app/)
+- **Frontend (Netlify):** [https://mern-blog-manager.netlify.app/](https://mern-blog-manager.netlify.app/)
 - **Backend (Render):** [https://mern-stack-integration-masmunge95.onrender.com/](https://mern-stack-integration-masmunge95.onrender.com/)
 
 ## Features
