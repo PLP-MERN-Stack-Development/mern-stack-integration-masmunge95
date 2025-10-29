@@ -24,7 +24,24 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+// Configure CORS to explicitly allow the frontend origins used in development and production.
+// Use the ALLOWED_ORIGINS env var (comma-separated) or sensible defaults.
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,https://mern-blog-wk4.netlify.app').split(',').map(s => s.trim());
+console.log('Allowed CORS origins:', allowedOrigins);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // allow requests with no origin (e.g., mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf('*') !== -1 || allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Serve uploaded files
