@@ -22,4 +22,18 @@ const api = axios.create({
   baseURL,
 });
 
+api.interceptors.request.use(
+  async (config) => {
+    // Access the global Clerk instance loaded by ClerkProvider.
+    if (window.Clerk?.session) {
+      const token = await window.Clerk.session.getToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 export default api;

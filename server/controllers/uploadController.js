@@ -1,5 +1,4 @@
 const { upload } = require('../middleware/uploadMiddleware');
-const { getFilePath } = require('../utils/fileUtils');
 
 /**
  * A middleware function that handles a single image upload.
@@ -23,7 +22,7 @@ const uploadFile = (req, res, next) => {
 
         console.log('[UploadController] File received and saved:', req.file);
         // If upload is successful, send back the file path
-        res.status(201).json({ filePath: getFilePath(req.file) });
+        res.status(201).json({ filePath: `/uploads/${req.file.filename}` });
     });
 };
 

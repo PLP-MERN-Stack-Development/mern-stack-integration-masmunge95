@@ -37,7 +37,7 @@ const PostManager = () => {
         setLoading(true);
         setError(null); // Clear previous errors
         const [postsData, categoriesData] = await Promise.all([
-          postService.getAllPosts(getToken), // Authenticated call
+          postService.getAllPosts(),
           categoryService.getAllCategories(),      // Public call, no auth needed
         ]);
         setPosts(postsData.posts || []);
@@ -71,7 +71,7 @@ const PostManager = () => {
         formData.append('image', postData.featuredImage);
       }
 
-      const newPost = await postService.createPost(formData, getToken);
+      const newPost = await postService.createPost(formData);
       setPosts((prevPosts) => [newPost, ...prevPosts]);
     } catch (err) {
       console.error("Error adding post:", err);
@@ -98,7 +98,7 @@ const PostManager = () => {
   
         // Use the dedicated upload endpoint
         console.log('[PostManager] Uploading new image...');
-        const uploadResponse = await postService.uploadImage(imageFormData, getToken);
+        const uploadResponse = await postService.uploadImage(imageFormData);
         console.log('[PostManager] Image upload response:', uploadResponse);
         postUpdateData.image = uploadResponse.filePath; // Set the new image path for the final update
       }
@@ -110,7 +110,7 @@ const PostManager = () => {
       setPosts(posts.map(p => p._id === id ? { ...p, ...postUpdateData } : p));
   
       // Step 3: Send the final update request with JSON data.
-      await postService.updatePost(id, postUpdateData, getToken);
+      await postService.updatePost(id, postUpdateData);
     } catch (err) {
       console.error("Error updating post:", err);
       setError(`Failed to update post. Reverting changes: ${err.message}`);
@@ -124,7 +124,7 @@ const PostManager = () => {
     setPosts(posts.filter((post) => post._id !== id)); 
     try {
       setError(null); // Clear previous errors
-      await postService.deletePost(id, getToken);
+      await postService.deletePost(id);
     } catch (err) {
       console.error("Error deleting post:", err);
       setError(`Failed to delete post: ${err.message}`);

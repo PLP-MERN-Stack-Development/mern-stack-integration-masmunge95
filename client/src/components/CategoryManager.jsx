@@ -34,13 +34,13 @@ const CategoryManager = () => {
             }
         };
         loadCategories();
-    }, [getToken]);
+    }, []);
 
     const handleAddCategory = async (categoryData) => {
         try {
             setIsAdding(true);
             setError(null);
-            const newCategory = await categoryService.createCategory(categoryData, getToken);
+            const newCategory = await categoryService.createCategory(categoryData);
             setCategories((prev) => [newCategory, ...prev]);
         } catch (err) {
             setError(`Failed to add category: ${err.message}`);
@@ -52,7 +52,7 @@ const CategoryManager = () => {
     const handleUpdateCategory = async (id, updates) => {
         try {
             setError(null);
-            const updatedCategory = await categoryService.updateCategory(id, updates, getToken);
+            const updatedCategory = await categoryService.updateCategory(id, updates);
             setCategories((prev) => prev.map((cat) => (cat._id === id ? updatedCategory : cat)));
         } catch (err) {
             setError(`Failed to update category: ${err.message}`);
@@ -63,7 +63,7 @@ const CategoryManager = () => {
         if (!window.confirm('Are you sure you want to delete this category? This might affect existing posts.')) return;
         try {
             setError(null);
-            await categoryService.deleteCategory(id, getToken);
+            await categoryService.deleteCategory(id);
             setCategories((prev) => prev.filter((cat) => cat._id !== id));
         } catch (err) {
             setError(`Failed to delete category: ${err.message}`);

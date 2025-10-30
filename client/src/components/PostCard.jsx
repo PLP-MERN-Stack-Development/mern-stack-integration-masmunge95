@@ -8,16 +8,19 @@ export default function PostCard({ post, categories = [], onUpdate, onDelete }) 
     const [draft, setDraft] = useState({ ...post });
     const [imagePreview, setImagePreview] = useState(null);
 
-    // When the post prop changes, reset the draft state to prevent stale data
+    // Reset the draft state whenever the main post prop changes.
     useEffect(() => {
         setDraft({ ...post });
+    }, [post]);
+
+    // Effect to manage the lifecycle of the image preview URL.
+    // This cleans up the object URL to prevent memory leaks.
+    useEffect(() => {
         // Clean up the object URL to avoid memory leaks
         return () => {
-            if (imagePreview) {
-                URL.revokeObjectURL(imagePreview);
-            }
+            if (imagePreview) URL.revokeObjectURL(imagePreview);
         };
-    }, [post]); // Run only when the post prop changes
+    }, [imagePreview]);
 
     const handleEditClick = () => {
         // Reset draft to current post state when starting to edit
@@ -44,10 +47,12 @@ export default function PostCard({ post, categories = [], onUpdate, onDelete }) 
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        if (file) {
-            setDraft(prev => ({ ...prev, featuredImage: file }));
-            setImagePreview(URL.createObjectURL(file));
+        // If there's an existing preview, revoke it before creating a new one to prevent memory leaks.
+        if (imagePreview) {
+            URL.revokeObjectURL(imagePreview);
         }
+        setDraft(prev => ({ ...prev, featuredImage: file || null }));
+        setImagePreview(file ? URL.createObjectURL(file) : null);
     };
 
     const imageUrl = getFullImageUrl(post.featuredImage);

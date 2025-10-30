@@ -13,14 +13,14 @@ const storage = multer.diskStorage({
         cb(null, uploadDir);
     },
     filename(req, file, cb) {
-        cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+        cb(null, `image-${Date.now()}${path.extname(file.originalname)}`);
     }
 });
 
 function checkFileType(file, cb) {
-    const filetypes = /jpg|jpeg|png/;
+    const filetypes = /jpeg|jpg|png|gif/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = filetypes.test(file.mimetype);
+    const mimetype = file.mimetype.startsWith('image/');
 
     if (extname && mimetype) {
         return cb(null, true);

@@ -21,29 +21,6 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss(),
-      {
-        name: 'csp-headers',
-        configureServer: (server) => {
-          server.middlewares.use((_req, res, next) => {
-            res.setHeader(
-              'Content-Security-Policy',
-              [
-                `default-src 'self' ${apiOrigin}`,
-                `connect-src 'self' ${apiOrigin} https://*.clerk.com https://*.clerk.accounts.dev wss://*.clerk.accounts.dev https://clerk.com https://clerk-telemetry.com https://*.clerk-telemetry.com`,
-                "frame-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.com",
-                // allow script elements explicitly (some browsers treat script-src-elem separately)
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.com",
-                "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.com",
-                "style-src 'self' 'unsafe-inline'",
-                `img-src 'self' data: blob: https://*.clerk.com https://*.clerk.accounts.dev https://clerk.com https://clerk-telemetry.com ${apiOrigin}`,
-                "font-src 'self' data:",
-                "worker-src 'self' blob:"
-              ].join('; ')
-            );
-            next();
-          });
-        },
-      },
     ],
     resolve: {
       alias: { '@': path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'src') },

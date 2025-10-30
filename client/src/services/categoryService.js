@@ -1,11 +1,5 @@
 import api from './api';
 
-const getAuthConfig = async (getToken) => {
-  if (!getToken) return {};
-  const token = await getToken();
-  return { headers: { Authorization: `Bearer ${token}` } };
-};
-
 export const categoryService = {
   getAllCategories: async () => {
     // This is likely a public endpoint, so no auth is needed.
@@ -13,21 +7,18 @@ export const categoryService = {
     return response.data;
   },
 
-  createCategory: async (categoryData, getToken) => {
-    const config = await getAuthConfig(getToken);
-    const response = await api.post('/categories', categoryData, config);
+  createCategory: async (categoryData) => {
+    const response = await api.post('/categories', categoryData);
     return response.data;
   },
 
-  updateCategory: async (id, categoryData, getToken) => {
-    const config = await getAuthConfig(getToken);
-    const response = await api.put(`/categories/${id}`, categoryData, config);
+  updateCategory: async (id, categoryData) => {
+    const response = await api.put(`/categories/${id}`, categoryData);
     return response.data;
   },
 
-  deleteCategory: async (id, getToken) => {
-    const config = await getAuthConfig(getToken);
-    const response = await api.delete(`/categories/${id}`, config);
+  deleteCategory: async (id) => {
+    const response = await api.delete(`/categories/${id}`);
     return response.data;
   },
 };

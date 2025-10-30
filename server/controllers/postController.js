@@ -2,7 +2,6 @@ const Post = require('../models/Post');
 const asyncHandler = require('../utils/asyncHandler');
 const fs = require('fs');
 const path = require('path');
-const { getFilePath } = require('../utils/fileUtils');
 
 // @desc    Get all posts
 // @route   GET /api/posts
@@ -30,7 +29,7 @@ exports.createPost = asyncHandler(async (req, res) => {
         content,
         category,
         status,
-        featuredImage: getFilePath(req.file),
+        featuredImage: req.file ? `/uploads/${req.file.filename}` : null,
     });
     const saved = await post.save();
     res.status(201).json(saved);
@@ -59,8 +58,11 @@ exports.updatePost = asyncHandler(async (req, res) => {
     }
 
     const updateData = { ...req.body };
-    // The frontend sends the new path in the 'image' field, but the model uses 'featuredImage'
-    updateData.featuredImage = newImagePath || oldImagePath;
+    // If a new image path was provided, map it to the 'featuredImage' field in the database.
+    // Otherwise, the existing 'featuredImage' will be preserved by default.
+    if (newImagePath) {
+        updateData.featuredImage = newImagePath;
+    }
     const updatedPost = await Post.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json(updatedPost);
 });
