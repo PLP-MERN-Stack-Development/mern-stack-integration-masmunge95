@@ -97,7 +97,9 @@ const PostManager = () => {
         imageFormData.append('image', updates.featuredImage);
   
         // Use the dedicated upload endpoint
+        console.log('[PostManager] Uploading new image...');
         const uploadResponse = await postService.uploadImage(imageFormData, getToken);
+        console.log('[PostManager] Image upload response:', uploadResponse);
         postUpdateData.image = uploadResponse.filePath; // Set the new image path for the final update
       }
   

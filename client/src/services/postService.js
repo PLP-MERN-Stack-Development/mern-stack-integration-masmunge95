@@ -51,8 +51,6 @@ export const postService = {
   // Upload an image
   uploadImage: async (formData, getToken) => {
     const config = await getAuthConfig(getToken);
-    // For FormData, we must let the browser set the Content-Type header
-    delete config.headers?.['Content-Type'];
     const response = await api.post('/upload', formData, config);
     return response.data;
   },

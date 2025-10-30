@@ -1,5 +1,7 @@
 const Post = require('../models/Post');
 const asyncHandler = require('../utils/asyncHandler');
+const fs = require('fs');
+const path = require('path');
 const { getFilePath } = require('../utils/fileUtils');
 
 // @desc    Get all posts
@@ -37,12 +39,30 @@ exports.createPost = asyncHandler(async (req, res) => {
 // @desc    Update post by id
 // @route   PUT /api/posts/:id
 exports.updatePost = asyncHandler(async (req, res) => {
-    const updateData = { ...req.body };
-    if (req.file) {
-        updateData.featuredImage = getFilePath(req.file);
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+        res.status(404);
+        throw new Error('Post not found');
     }
-    const post = await Post.findByIdAndUpdate(req.params.id, updateData, { new: true });
-    res.json(post);
+
+    // Check if a new image path is provided in the update
+    const newImagePath = req.body.image;
+    const oldImagePath = post.featuredImage;
+
+    // If a new image is provided and it's different from the old one, delete the old file
+    if (newImagePath && newImagePath !== oldImagePath && oldImagePath) {
+        const oldImageFullPath = path.join(__dirname, '..', oldImagePath);
+        if (fs.existsSync(oldImageFullPath)) {
+            fs.unlinkSync(oldImageFullPath);
+        }
+    }
+
+    const updateData = { ...req.body };
+    // The frontend sends the new path in the 'image' field, but the model uses 'featuredImage'
+    updateData.featuredImage = newImagePath || oldImagePath;
+    const updatedPost = await Post.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    res.json(updatedPost);
 });
 
 // @desc    Delete post by id

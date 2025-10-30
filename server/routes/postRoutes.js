@@ -11,6 +11,6 @@ const {
 } = require('../controllers/postController');
 
 router.route('/').get(getAllPosts).post(upload.single('image'), validatePost, createPost);
-router.route('/:id').get(getPostById).put(upload.single('image'), validatePost, updatePost).delete(deletePost);
+router.route('/:id').get(getPostById).put(validatePost, updatePost).delete(deletePost);
 
 module.exports = router;

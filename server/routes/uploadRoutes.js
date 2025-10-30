@@ -1,13 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { upload } = require('../middleware/uploadMiddleware');
-const { getFilePath } = require('../utils/fileUtils');
+const { uploadFile } = require('../controllers/uploadController');
 
-router.post('/', upload.single('image'), (req, res) => {
-    res.send({
-        message: 'Image Uploaded',
-        image: getFilePath(req.file)
-    });
-});
+// The upload route. Authentication is temporarily removed for testing.
+router.post('/', uploadFile);
 
 module.exports = router;
