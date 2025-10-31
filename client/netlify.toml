@@ -2,10 +2,10 @@
 
 # --- Build Settings ---
 # Specifies the build command and the directory where the built files are located.
+# Since this file is in the 'client' directory, paths are relative to it.
 [build]
-  base    = "client" # The directory where the build command should be run
   command = "npm run build" # The command to build the site
-  publish = "client/dist" # The directory to publish
+  publish = "dist" # The directory to publish (relative to 'client')
 
 # --- Redirects and Rewrites ---
 
