@@ -2,7 +2,8 @@ import { useTheme } from '@/context/ThemeContext';
 import { useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useSmoothScroll } from '../hooks/UseSmoothScroll';
-import { SignedIn, useSession, UserButton } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, useSession, UserButton } from '@clerk/clerk-react';
+import Button from './Button';
 
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -41,11 +42,20 @@ const SmoothNavLink = ({ to, children, headerRef, className, ...rest }) => {
   );
 };
 
-export default function Header() {
+export default function Header({ scrollTargetRef }) {
   const { theme, toggleTheme } = useTheme();
   const headerRef = useRef(null);
   const { session } = useSession();
   const isEditor = session?.user?.publicMetadata?.role === 'editor';
+  const scrollToTarget = useSmoothScroll();
+
+  const handleScroll = () => {
+    if (scrollTargetRef.current) {
+      const headerHeight = headerRef.current ? headerRef.current.offsetHeight : 0;
+      // Scroll to the target element with an offset for the fixed header
+      scrollToTarget(scrollTargetRef.current, 1500, null, headerHeight);
+    }
+  };
 
   return (
     <header ref={headerRef} className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-b shadow-lg border-gray-200 dark:border-gray-700">
@@ -69,6 +79,11 @@ export default function Header() {
               </div>
             </SignedIn>
           )}
+          <SignedOut>
+            <Button onClick={handleScroll} variant="primary" size="sm">
+              Get Started
+            </Button>
+          </SignedOut>
           <button
             onClick={toggleTheme}
             className="p-2 rounded-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom'; // Ensure Link is imported
 import { useAuth, useUser } from '@clerk/clerk-react';
 import Button from '@/components/Button';
-import { Helmet } from 'react-helmet-async';
 import { getFullImageUrl } from '@/services/api';
 import { postService } from '@/services/postService';
 import { generateMetaTags } from '@/utils/seoUtils';
@@ -110,7 +109,7 @@ export default function PostPage() {
         return <div className="text-center p-12">Post not found.</div>;
     }
 
-    return (
+    return ( 
         <>
             <Helmet>
                 <title>{meta.title}</title>

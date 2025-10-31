@@ -9,12 +9,10 @@ export default function App(){
   return (
     <ThemeProvider>
       <HelmetProvider>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/posts/:slug" element={<PostPage />} />
-          </Routes>
-        </Layout>
+        <Routes>
+          <Route path="/" element={<Layout><HomePage /></Layout>} />
+          <Route path="/posts/:slug" element={<Layout><PostPage /></Layout>} />
+        </Routes>
       </HelmetProvider>
     </ThemeProvider>
   );

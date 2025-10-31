@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuth, useUser } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/clerk-react';
 import PostForm from '@/components/PostForm';
 import PostCard from '@/components/PostCard';
 import { postService } from '@/services/postService';

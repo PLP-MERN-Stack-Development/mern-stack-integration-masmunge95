@@ -1,6 +1,5 @@
 import { useUser, useSession, useAuth } from '@clerk/clerk-react';
 import React, { useEffect, useState, useMemo } from 'react';
-import { Navigate } from 'react-router-dom';
 import PostManager from '@/components/PostManager';
 import CategoryManager from '@/components/CategoryManager';
 import { categoryService } from '@/services/categoryService';

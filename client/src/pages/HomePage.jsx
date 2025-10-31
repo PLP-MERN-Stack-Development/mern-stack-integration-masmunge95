@@ -28,7 +28,7 @@ const SignUpButtonWrapper = React.forwardRef(({ children, unsafeMetadata, ...pro
   );
 });
 
-export default function HomePage() {
+export default function HomePage({ setScrollTarget }) {
   const { isLoaded, session } = useSession();
 
   // Show a loading state while Clerk is initializing
@@ -48,7 +48,7 @@ export default function HomePage() {
       <SignedOut>
         <div>
           {/* Hero Section */}
-          <section className="text-center py-16">
+          <section ref={setScrollTarget} className="text-center py-16">
             <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl max-w-4xl mx-auto mb-15">
               Welcome to <span className="text-blue-600 dark:text-blue-400">MERN Blog Manager!</span>
             </h1>
