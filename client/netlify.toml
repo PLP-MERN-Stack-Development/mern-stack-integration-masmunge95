@@ -1,10 +1,33 @@
 # This file configures Netlify's build and redirect settings.
 
+# --- Build Settings ---
+# Specifies the build command and the directory where the built files are located.
+[build]
+  base    = "client" # The directory where the build command should be run
+  command = "npm run build" # The command to build the site
+  publish = "client/dist" # The directory to publish
+
+# --- Redirects and Rewrites ---
+
+# Proxy API requests to the backend server on Render.
+[[redirects]]
+  from = "/api/*"
+  to = "https://mern-stack-integration-masmunge95.onrender.com/api/:splat"
+  status = 200 # Rewrite rule (proxy)
+
+# Proxy image uploads to the backend server.
+[[redirects]]
+  from = "/uploads/*"
+  to = "https://mern-stack-integration-masmunge95.onrender.com/uploads/:splat"
+  status = 200 # Rewrite rule (proxy)
+
+# SPA fallback: Redirect all other requests to index.html for client-side routing.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
-    # Content Security Policy to allow Clerk's scripts and styles to function correctly.
-    # Replace 'working-toucan-66.clerk.accounts.dev' with your actual Clerk frontend API URL if it's different.
-    script-src = "'self' 'unsafe-eval' 'unsafe-inline' https://working-toucan-66.clerk.accounts.dev"
-    frame-src = "'self' https://working-toucan-66.clerk.accounts.dev"
-    style-src = "'self' 'unsafe-inline' https://working-toucan-66.clerk.accounts.dev"
+    # Add any custom headers here. For example, Content Security Policy.
