@@ -189,6 +189,10 @@ For local webhook testing, you will also need a third terminal running `ngrok ht
    - **Issue:** Frontend requests to `/api/...` return 404.  
    - **Fix:** A proxy in `vite.config.js` forwards `/api` and `/uploads` requests to the backend server running on `http://localhost:5000`.
 
+4. **Netlify Deployment Build Failures**
+   - **Issue:** The build process on Netlify fails due to peer dependency conflicts.
+   - **Fix:** In your Netlify site settings, go to **Site configuration > Environment variables** and add a new variable: `NPM_FLAGS` with the value `--legacy-peer-deps`. This tells NPM to ignore peer dependency mismatches during installation.
+
 ---
 
 **Happy coding and blogging! 🚀**
