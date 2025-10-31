@@ -1,19 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import PostForm from '@/components/PostForm';
 import PostCard from '@/components/PostCard';
 import { postService } from '@/services/postService';
-import { categoryService } from '@/services/categoryService';
+
 import Button from '@/components/Button';
 import { useSmoothScroll } from '../hooks/UseSmoothScroll';
 
 /**
  * PostManager component for managing blog posts.
  */
-const PostManager = () => {
+const PostManager = ({ categories }) => {
   const [posts, setPosts] = useState([]);
-  const { getToken } = useAuth();
-  const [categories, setCategories] = useState([]);
+  const { getToken, userId } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
@@ -28,7 +27,7 @@ const PostManager = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const POSTS_PER_PAGE = 5;
+  const POSTS_PER_PAGE = 3;
 
   // Fetch posts and categories from the API on component mount
   useEffect(() => {
@@ -36,12 +35,8 @@ const PostManager = () => {
       try {
         setLoading(true);
         setError(null); // Clear previous errors
-        const [postsData, categoriesData] = await Promise.all([
-          postService.getAllPosts(),
-          categoryService.getAllCategories(),      // Public call, no auth needed
-        ]);
+        const postsData = await postService.getAllPosts(1, 100, null, null, userId); // Fetch user-specific posts
         setPosts(postsData.posts || []);
-        setCategories(categoriesData.categories || []);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError(`Failed to load data: ${err.message}`);
@@ -50,7 +45,7 @@ const PostManager = () => {
       }
     };
     loadData();
-  }, [getToken]);
+  }, [userId]);
 
   // Reset to first page when filter changes
   useEffect(() => {
@@ -67,11 +62,18 @@ const PostManager = () => {
       formData.append('content', postData.content);
       formData.append('category', postData.category);
       formData.append('status', postData.status);
+      if (postData.author) {
+        formData.append('author', postData.author);
+      }
+      if (postData.tags) {
+        formData.append('tags', postData.tags); // Send as a comma-separated string
+      }
       if (postData.featuredImage) {
         formData.append('image', postData.featuredImage);
       }
 
-      const newPost = await postService.createPost(formData);
+      const token = await getToken({ template: 'Metadata-claims' });
+      const newPost = await postService.createPost(formData, token);
       setPosts((prevPosts) => [newPost, ...prevPosts]);
     } catch (err) {
       console.error("Error adding post:", err);
@@ -82,38 +84,61 @@ const PostManager = () => {
   };
 
   const handleUpdatePost = async (id, updates) => {
-    // Find the original post to get its current image path
-    const originalPost = posts.find(p => p._id === id);
     const originalPosts = [...posts];
     setError(null); // Clear previous errors
+    const token = await getToken({ template: 'Metadata-claims' });
   
     try {
-      let imageUrl = originalPost.image; // Default to the existing image
-      const postUpdateData = { ...updates }; // Create a mutable copy of the updates
-  
-      // Step 1: If a new image file is included in the updates, upload it first.
-      if (updates.featuredImage && updates.featuredImage instanceof File) {
-        const imageFormData = new FormData();
-        imageFormData.append('image', updates.featuredImage);
-  
-        // Use the dedicated upload endpoint
-        console.log('[PostManager] Uploading new image...');
-        const uploadResponse = await postService.uploadImage(imageFormData);
-        console.log('[PostManager] Image upload response:', uploadResponse);
-        postUpdateData.image = uploadResponse.filePath; // Set the new image path for the final update
+      const postToUpdate = posts.find(p => p._id === id);
+      if (!postToUpdate) throw new Error("Post not found for updating.");
+
+      // Optimistically update the UI with all changes.
+      // If a new file is being uploaded, create a temporary local URL for immediate display.
+      const optimisticUpdates = { ...updates };
+      if (updates.featuredImage instanceof File) {
+        optimisticUpdates.featuredImage = URL.createObjectURL(updates.featuredImage);
       }
+      setPosts(posts.map(p => p._id === id ? { ...p, ...optimisticUpdates } : p));
+
+      // Create FormData to send all updates, including the potential new image file.
+      const formData = new FormData();
+      Object.keys(updates).forEach(key => {
+        // Do not send comments or tags during a post update, as they are managed separately.
+        if (key === 'comments' || key === 'tags') return;
+
+        if (key === 'featuredImage') {
+          // Use 'image' as the field name for the file, as expected by multer.
+          if (updates[key] instanceof File) formData.append('image', updates[key]);
+        } else {
+          // Ensure that even if a value is optional (like author), it gets added if it exists.
+          const value = updates[key];
+          if (value !== undefined && value !== null) formData.append(key, Array.isArray(value) ? value.join(',') : value);
+        }
+      });
   
-      // The 'featuredImage' property is a client-side file object and should not be sent to the backend.
-      delete postUpdateData.featuredImage;
-  
-      // Optimistically update the UI
-      setPosts(posts.map(p => p._id === id ? { ...p, ...postUpdateData } : p));
-  
-      // Step 3: Send the final update request with JSON data.
-      await postService.updatePost(id, postUpdateData);
+      // Send a single update request.
+      const updatedPost = await postService.updatePost(id, formData, token);
+      // Update the UI with the final data from the server.
+      setPosts(posts.map(p => p._id === id ? updatedPost : p));
     } catch (err) {
       console.error("Error updating post:", err);
       setError(`Failed to update post. Reverting changes: ${err.message}`);
+      setPosts(originalPosts); // Revert on error
+    }
+  };
+
+  const handleStatusUpdate = async (id, status) => {
+    const originalPosts = [...posts];
+    // Optimistically update the UI
+    setPosts(posts.map(p => p._id === id ? { ...p, status } : p));
+    try {
+      setError(null);
+      const token = await getToken({ template: 'Metadata-claims' });
+      // Use the new dedicated service function
+      await postService.updatePostStatus(id, status, token);
+    } catch (err) {
+      console.error("Error updating post status:", err);
+      setError(`Failed to update status: ${err.message}`);
       setPosts(originalPosts); // Revert on error
     }
   };
@@ -124,7 +149,8 @@ const PostManager = () => {
     setPosts(posts.filter((post) => post._id !== id)); 
     try {
       setError(null); // Clear previous errors
-      await postService.deletePost(id);
+      const token = await getToken({ template: 'Metadata-claims' });
+      await postService.deletePost(id, token);
     } catch (err) {
       console.error("Error deleting post:", err);
       setError(`Failed to delete post: ${err.message}`);
@@ -203,7 +229,7 @@ const PostManager = () => {
           </p>
         ) : (
           !loading && paginatedPosts.map((post) => (
-            <PostCard key={post._id} post={post} categories={categories} onUpdate={handleUpdatePost} onDelete={handleDeletePost} />
+            <PostCard key={post._id} post={post} categories={categories} onUpdate={handleUpdatePost} onStatusUpdate={handleStatusUpdate} onDelete={handleDeletePost} />
           ))
         )}
       </ul>

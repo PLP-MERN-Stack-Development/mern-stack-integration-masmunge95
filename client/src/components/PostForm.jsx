@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '@/components/Button';
 
 export default function PostForm({ onSubmit, categories = [], isSubmitting = false }) {
@@ -7,8 +7,21 @@ export default function PostForm({ onSubmit, categories = [], isSubmitting = fal
         content: '',
         category: '',
         status: 'draft',
+        author: '',
+        tags: '',
         featuredImage: '',
     });
+
+    const [imagePreview, setImagePreview] = useState(null);
+
+    // Effect to clean up the object URL to prevent memory leaks
+    useEffect(() => {
+        return () => {
+            if (imagePreview) {
+                URL.revokeObjectURL(imagePreview);
+            }
+        };
+    }, [imagePreview]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -16,10 +29,17 @@ export default function PostForm({ onSubmit, categories = [], isSubmitting = fal
     };
 
     const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        // If there's an existing preview, revoke it before creating a new one.
+        if (imagePreview) {
+            URL.revokeObjectURL(imagePreview);
+        }
+
         setForm(prev => ({
             ...prev,
-            featuredImage: e.target.files[0]
+            featuredImage: file || null
         }));
+        setImagePreview(file ? URL.createObjectURL(file) : null);
     };
 
     const handleSubmit = (e) => {
@@ -27,9 +47,12 @@ export default function PostForm({ onSubmit, categories = [], isSubmitting = fal
         if (!form.title) {
             return;
         }
-
         onSubmit(form);
-        setForm({ title: '', content: '', category: '', status: 'draft', featuredImage: '' });
+        setForm({ title: '', content: '', category: '', status: 'draft', author: '', tags: '', featuredImage: '' });
+        if (imagePreview) {
+            URL.revokeObjectURL(imagePreview);
+        }
+        setImagePreview(null);
     }; 
 
     return (
@@ -42,6 +65,13 @@ export default function PostForm({ onSubmit, categories = [], isSubmitting = fal
                 className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500"
                 required
             />
+            <input
+                name="author"
+                value={form.author}
+                onChange={handleChange}
+                placeholder="Author name (optional, defaults to your name)"
+                className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500"
+            />
             <textarea
                 name="content"
                 value={form.content}
@@ -49,6 +79,19 @@ export default function PostForm({ onSubmit, categories = [], isSubmitting = fal
                 placeholder="Enter post content"
                 className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 h-40 placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500"
             />
+            <input
+                name="tags"
+                value={form.tags}
+                onChange={handleChange}
+                placeholder="Tags (comma-separated, optional)"
+                className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500"
+            />
+            {imagePreview && (
+                <div className="my-2">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image Preview:</p>
+                    <img src={imagePreview} alt="New post preview" className="w-full h-48 object-cover rounded-md" />
+                </div>
+            )}
             <input
                 type="file"
                 name="featuredImage"

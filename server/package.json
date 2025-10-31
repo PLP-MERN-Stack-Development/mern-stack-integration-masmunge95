@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@clerk/clerk-sdk-node": "^4.13.23",
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -17,7 +18,8 @@
     "express-validator": "^7.3.0",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^8.19.2",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "svix": "^1.81.0"
   },
   "description": ""
 }

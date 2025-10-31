@@ -12,13 +12,15 @@ The project serves as a comprehensive demonstration of MERN stack integration �
 ## Features
 
 - **Full CRUD for Posts & Categories**: Create, read, update, and delete posts and their categories through a sleek admin dashboard.
-- **Secure User Authentication**: Sign up, sign in, and manage sessions securely with [Clerk](https://clerk.com/).
+- **Role-Based Authentication**: Secure user management with [Clerk](https://clerk.com/), featuring distinct roles for 'Editors' (content creators) and 'Viewers' (readers/commenters).
+- **Content Ownership**: Editors have full control over their own posts and categories, which are cloned from system templates, ensuring content isolation.
 - **Featured Image Uploads**: Upload and manage featured images for your blog posts using `multer`.
-- **Single Post View**: A clean, responsive page to display individual posts by URL.
+- **Unique View Count**: Posts track unique views from 'Viewers' over a 24-hour period, providing more accurate engagement metrics.
+- **Comments System**: Logged-in users can comment on posts, with ownership rules allowing them to edit or delete their own comments.
 - **Server-Side Validation**: Robust backend validation with `express-validator` to maintain data integrity.
 - **Dark/Light Mode**: Built-in theme switching powered by React Context.
 - **Pagination**: Smooth navigation even for large datasets of posts and categories.
-- **Dynamic Welcome Messages**: Each dashboard load displays a new motivational message to inspire creativity.
+- **Searching and Filtering**: Public post list includes dynamic filtering by category and searching by tags.
 
 ## Tech Stack
 
@@ -26,7 +28,7 @@ The project serves as a comprehensive demonstration of MERN stack integration �
 - **Backend**: Node.js, Express.js  
 - **Database**: MongoDB with Mongoose  
 - **Authentication**: Clerk  
-- **API Communication**: Axios
+- **API Communication**: Axios  
 - **File Uploads**: Multer  
 
 ## Screenshots
@@ -46,11 +48,13 @@ mern-blog/
 ├── client/                 # React front-end
 │   ├── public/             # Static files
 │   ├── src/                # React source code
+│   │   ├── assets/         # Logo file directory
 │   │   ├── components/     # Reusable components
 │   │   ├── context/        # React context providers
 │   │   ├── hooks/          # Custom React hooks
 │   │   ├── pages/          # Page components
 │   │   ├── services/       # API services
+│   │   ├── utils/          # Frontend utility functions
 │   │   └── App.jsx         # Main application component
 │   └── package.json        # Client dependencies
 ├── server/                 # Express.js back-end
@@ -59,8 +63,10 @@ mern-blog/
 │   ├── middleware/         # Custom middleware
 │   ├── models/             # Mongoose models
 │   ├── routes/             # API routes
-│   ├── utils/              # Utility functions
+│   ├── uploads/            # File uploads directory
+│   ├── utils/              # Backend utility functions
 │   ├── server.js           # Main server file
+│   ├── netlify.toml        # Netlify configuration
 │   └── package.json        # Server dependencies
 └── README.md               # Project documentation
 ```
@@ -71,13 +77,14 @@ mern-blog/
 - Node.js (v18 or higher)
 - MongoDB (local installation or MongoDB Atlas)
 - Clerk account for authentication keys
+- [ngrok](https://ngrok.com/download) for handling webhooks in local development
 
 ### 1. Clone the Repository
 First, clone the project to your local machine.
 
 ```bash
-git clone https://github.com/your-username/mern-blog.git
-cd mern-blog
+git clone https://github.com/PLP-MERN-Stack-Development/plp-mern-stack-development-classroom-mern-stack-integration-MERN-Stack-Week4.git
+cd MERN-Stack-Integration
 ```
 
 ### 2. Backend Setup
@@ -88,36 +95,56 @@ cd server
 npm install
 ```
 
-Next, create a `.env` file in the server directory and add the following environment variables. Replace the placeholder values with your actual keys.
+Next, create a `.env` file in the `server` directory by copying the `server/.env.example` file and adding your configuration values.
 
 ```ini
+# server/.env
 NODE_ENV=development
 PORT=5000
-MONGO_URI=your_mongodb_connection_string
-CLERK_SECRET_KEY=your_clerk_secret_key
+MONGO_URI="your_mongodb_connection_string"
+CLERK_SECRET_KEY="your_clerk_secret_key_starting_with_sk_..."
+CLERK_WEBHOOK_SECRET_LOCAL="your_local_webhook_secret_starting_with_whsec_..."
+CLERK_WEBHOOK_SECRET_PUBLISHED="your_production_webhook_secret_starting_with_whsec_..."
 ```
 
 ### 3. Frontend Setup
 In a new terminal, navigate to the client directory and install its dependencies.
 
 ```bash
-cd ../client
+cd client
 npm install
 ```
 
-Then, create a `.env` file in the client directory and add your Clerk Publishable Key.
+Then, create a `.env` file in the client directory by copying the `client/.env.example` file and add your configuration values.
 
 ```ini
-VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+# client/.env
+VITE_API_URL="your_production_backend_url"
+VITE_CLERK_PUBLISHABLE_KEY="your_clerk_publishable_key_starting_with_pk_..."
 ```
 
-### 4. Run the Application
-You will need two separate terminal windows to run both the client and server concurrently.  
+### 4. Clerk Configuration
+1. **API Keys**: In your Clerk Dashboard, go to *API Keys* and copy your Publishable key and Secret key into the respective `.env` files.  
+2. **JWT Template**: Go to *JWT Templates*, create a new template named `Metadata-claims`, and add a new claim with:
+
+```bash
+   {
+	"metadata": "{{user.public_metadata}}"
+   }
+```
+
+   Set this template as the default.  
+3. **Webhooks**:  
+   - **Production**: Set the URL to `https://<your-backend-url>/api/webhooks/clerk`. Subscribe to the `user.created` event. Copy the signing secret to `CLERK_WEBHOOK_SECRET_PUBLISHED`.  
+   - **Local Development**: Run `ngrok http 5000` and use the public URL it provides (e.g., `https://<random-string>.ngrok-free.app/api/webhooks/clerk`). Subscribe to `user.created` and copy the secret to `CLERK_WEBHOOK_SECRET_LOCAL`.
+
+### 5. Run the Application
+You will need two separate terminal windows to run both the client and server concurrently.
 
 **Terminal 1 (Backend):**
 ```bash
 cd server
-node server.js
+npm start
 ```
 
 **Terminal 2 (Frontend):**
@@ -126,22 +153,27 @@ cd client
 npm run dev
 ```
 
-The application will be available at [http://localhost:5173](http://localhost:5173).
+The application will be available at [http://localhost:5173](http://localhost:5173).  
+For local webhook testing, you will also need a third terminal running `ngrok http 5000`.
 
 ## API Documentation
 
-| Method  | Endpoint              | Description                    |
-|----------|----------------------|--------------------------------|
-| `GET`    | `/api/posts`         | Get all blog posts             |
-| `POST`   | `/api/posts`         | Create a new blog post         |
-| `GET`    | `/api/posts/:id`     | Get a single blog post by ID   |
-| `PUT`    | `/api/posts/:id`     | Update a blog post by ID       |
-| `DELETE` | `/api/posts/:id`     | Delete a blog post by ID       |
-| `GET`    | `/api/categories`    | Get all categories             |
-| `POST`   | `/api/categories`    | Create a new category          |
-| `PUT`    | `/api/categories/:id`| Update a category by ID        |
-| `DELETE` | `/api/categories/:id`| Delete a category by ID        |
-| `POST`   | `/api/upload`        | Upload a single image          |
+| Method   | Endpoint                       | Description                                      | Access        |
+|----------|--------------------------------|--------------------------------------------------|---------------|
+| `GET`    | `/api/posts`                   | Get posts (published for public, all for editor) | Public/Editor |
+| `POST`   | `/api/posts`                   | Create a new blog post                           | Editor        |
+| `GET`    | `/api/posts/:id`               | Get a single post (public)                       | Public        |
+| `GET`    | `/api/posts/authenticated/:id` | Get a single post (for logged-in users)          | Viewer/Editor |
+| `PUT`    | `/api/posts/:id`               | Update a blog post by ID                         | Owner         |
+| `PATCH`  | `/api/posts/:id/status`        | Update a post's status (draft, published, etc.)  | Owner         |
+| `DELETE` | `/api/posts/:id`               | Delete a blog post by ID                         | Owner         |
+| `POST`   | `/api/posts/:id/comments`      | Add a comment to a post                          | Viewer/Editor |
+| `PUT`    | `/api/posts/:id/comments/:cid` | Update a user's own comment                      | Owner         |
+| `DELETE` | `/api/posts/:id/comments/:cid` | Delete a user's own comment                      | Owner         |
+| `GET`    | `/api/categories`              | Get categories (public or user-specific)         | Public/Editor |
+| `POST`   | `/api/categories`              | Create a new category                            | Editor        |
+| `PUT`    | `/api/categories/:id`          | Update a category by ID (copy-on-edit)           | Owner         |
+| `DELETE` | `/api/categories/:id`          | Delete a category by ID                          | Owner         |
 
 ## Troubleshooting
 

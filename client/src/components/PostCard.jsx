@@ -3,9 +3,10 @@ import Button from '@/components/Button';
 import { Link } from 'react-router-dom';
 import { getFullImageUrl } from '@/services/api';
 
-export default function PostCard({ post, categories = [], onUpdate, onDelete }) {
+export default function PostCard({ post, categories = [], onUpdate, onStatusUpdate, onDelete }) {
     const [isEditing, setIsEditing] = useState(false);
     const [draft, setDraft] = useState({ ...post });
+    const [isSaving, setIsSaving] = useState(false);
     const [imagePreview, setImagePreview] = useState(null);
 
     // Reset the draft state whenever the main post prop changes.
@@ -34,10 +35,16 @@ export default function PostCard({ post, categories = [], onUpdate, onDelete }) 
         setImagePreview(null); // Clear preview on cancel
     };
 
-    const handleSave = (e) => {
+    const handleSave = async (e) => {
         e.preventDefault();
-        onUpdate(post._id, draft);
-        setIsEditing(false);
+        setIsSaving(true);
+        try {
+            await onUpdate(post._id, draft);
+        } finally {
+            // Ensure isSaving is reset even if the update fails
+            setIsSaving(false);
+            setIsEditing(false);
+        }
     };
 
     const handleInputChange = (e) => {
@@ -62,8 +69,8 @@ export default function PostCard({ post, categories = [], onUpdate, onDelete }) 
             {!isEditing ? (
                 <div className="flex flex-col justify-between h-full gap-4">
                     <div className="flex-grow">
-                        <div className="flex justify-between items-start">
-                            <Link to={`/posts/${post._id}`}>
+                        <div className="flex justify-between items-start mb-2">
+                            <Link to={`/posts/${post.slug || post._id}`}>
                                 <h3 className="text-lg font-semibold hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                     {post.title}
                                 </h3>
@@ -74,13 +81,20 @@ export default function PostCard({ post, categories = [], onUpdate, onDelete }) 
                                 {post.status}
                             </span>
                         </div>
-                        {imageUrl && <img src={imageUrl} alt={post.title} className="mt-4 w-full h-48 object-cover rounded-md" />}
-                        {post.content && <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{post.content}</p>}
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                            By {post.author} on {new Date(post.createdAt).toLocaleDateString()}
+                        </p>
+                        {imageUrl && (
+                            <Link to={`/posts/${post.slug || post._id}`}>
+                                <img src={imageUrl} alt={post.title} className="mt-4 w-full h-48 object-cover rounded-md hover:opacity-90 transition-opacity" />
+                            </Link>
+                        )}
+                        {post.excerpt && <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{post.excerpt}</p>}
                     </div>
                     <div className="flex flex-wrap gap-2 mt-2">
-                        {post.status !== 'published' && <Button onClick={() => onUpdate(post._id, { status: 'published' })} variant="success" size="sm">Publish</Button>}
-                        {post.status !== 'draft' && <Button onClick={() => onUpdate(post._id, { status: 'draft' })} variant="primary" size="sm">Set to Draft</Button>}
-                        {post.status !== 'archived' && <Button onClick={() => onUpdate(post._id, { status: 'archived' })} variant="warning" size="sm">Archive</Button>}
+                        {post.status !== 'published' && <Button onClick={() => onStatusUpdate(post._id, 'published')} variant="success" size="sm">Publish</Button>}
+                        {post.status !== 'draft' && <Button onClick={() => onStatusUpdate(post._id, 'draft')} variant="primary" size="sm">Set to Draft</Button>}
+                        {post.status !== 'archived' && <Button onClick={() => onStatusUpdate(post._id, 'archived')} variant="warning" size="sm">Archive</Button>}
                         <Button onClick={handleEditClick} variant="secondary" size="sm">
                             Edit
                         </Button>
@@ -99,12 +113,26 @@ export default function PostCard({ post, categories = [], onUpdate, onDelete }) 
                         placeholder="Enter post title"
                         required
                     />
+                    <input
+                        name="author"
+                        className="border border-gray-300 dark:border-gray-600 bg-transparent rounded-lg p-2 placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500"
+                        value={draft.author || ''}
+                        onChange={handleInputChange}
+                        placeholder="Author name (optional)"
+                    />
                     <textarea
                         name="content"
                         className="border border-gray-300 dark:border-gray-600 bg-transparent rounded-lg p-2 placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500"
                         value={draft.content}
                         onChange={handleInputChange}
                         placeholder="Enter post content"
+                    />
+                    <input
+                        name="tags"
+                        className="border border-gray-300 dark:border-gray-600 bg-transparent rounded-lg p-2 placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500"
+                        value={Array.isArray(draft.tags) ? draft.tags.join(', ') : draft.tags || ''}
+                        onChange={handleInputChange}
+                        placeholder="Tags (comma-separated, optional)"
                     />
                     {(imagePreview || imageUrl) && (
                         <div className="my-2">
@@ -136,8 +164,8 @@ export default function PostCard({ post, categories = [], onUpdate, onDelete }) 
                         <option value="archived">Archived</option>
                     </select>
                     <div className="flex gap-2">
-                        <Button type="submit" variant="success" size="sm">
-                            Save
+                        <Button type="submit" variant="success" size="sm" disabled={isSaving}>
+                            {isSaving ? 'Saving...' : 'Save'}
                         </Button>
                         <Button type="button" onClick={handleCancel} variant="secondary" size="sm">
                             Cancel

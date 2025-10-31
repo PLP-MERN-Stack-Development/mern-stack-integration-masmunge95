@@ -8,6 +8,10 @@ const CategorySchema = new mongoose.Schema({
   description: {
     type: String,
   },
+  authorId: {
+    type: String,
+    required: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

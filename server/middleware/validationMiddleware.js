@@ -11,14 +11,11 @@ const validateRequest = (req, res, next) => {
 exports.validatePost = [
     body('title')
         .not().isEmpty().withMessage('Title is required.')
-        .trim()
-        .escape(),
-    body('content')
-        .not().isEmpty().withMessage('Content is required.')
         .trim(),
+    body('content').optional().trim(),
     body('category')
         .not().isEmpty().withMessage('Category is required.')
-        .isMongoId().withMessage('Invalid category ID.'),
+        .isMongoId().withMessage('You must select a valid category.'),
     body('status')
         .optional()
         .isIn(['draft', 'published', 'archived']).withMessage('Invalid status.'),

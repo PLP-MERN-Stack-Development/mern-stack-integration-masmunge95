@@ -1,0 +1,10 @@
+# This file configures Netlify's build and redirect settings.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Content Security Policy to allow Clerk's scripts and styles to function correctly.
+    # Replace 'working-toucan-66.clerk.accounts.dev' with your actual Clerk frontend API URL if it's different.
+    script-src = "'self' 'unsafe-eval' 'unsafe-inline' https://working-toucan-66.clerk.accounts.dev"
+    frame-src = "'self' https://working-toucan-66.clerk.accounts.dev"
+    style-src = "'self' 'unsafe-inline' https://working-toucan-66.clerk.accounts.dev"

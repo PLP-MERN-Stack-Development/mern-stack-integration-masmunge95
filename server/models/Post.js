@@ -1,6 +1,7 @@
 // Post.js - Mongoose model for blog posts
 
 const mongoose = require('mongoose');
+const slugify = require('../utils/slugify');
 
 const PostSchema = new mongoose.Schema(
   {
@@ -20,14 +21,19 @@ const PostSchema = new mongoose.Schema(
     },
     slug: {
       type: String,
+      unique: true,
     },
     excerpt: {
       type: String,
       maxlength: [200, 'Excerpt cannot be more than 200 characters'],
     },
     author: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      type: String,
+      default: 'Anonymous',
+    },
+    authorId: {
+      type: String,
+      required: true,
     },
     category: {
       type: mongoose.Schema.Types.ObjectId,
@@ -44,11 +50,21 @@ const PostSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    viewedBy: [
+      {
+        userId: { type: String, required: true },
+        lastViewed: { type: Date, required: true },
+      },
+    ],
     comments: [
       {
+        userId: {
+          type: String,
+          required: true,
+        },
         user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
+          type: String,
+          required: true,
         },
         content: {
           type: String,
@@ -70,11 +86,7 @@ PostSchema.pre('save', function (next) {
     return next();
   }
   
-  this.slug = this.title
-    .toLowerCase()
-    .replace(/[^\w ]+/g, '')
-    .replace(/ +/g, '-');
-    
+  this.slug = slugify(this.title);
   next();
 });
 
@@ -85,12 +97,6 @@ PostSchema.pre('save', function (next) {
   }
 
   this.excerpt = this.content.substring(0, 197) + (this.content.length > 200 ? '...' : '');
-  next();
-});
-
-// Extract author info when populating
-PostSchema.pre(/^find/, function (next) {
-  this.populate({ path: 'author', select: 'name email' });
   next();
 });
 
@@ -108,14 +114,8 @@ PostSchema.virtual('url').get(function () {
 });
 
 // Method to add a comment
-PostSchema.methods.addComment = function (userId, content) {
-  this.comments.push({ user: userId, content });
-  return this.save();
-};
-
-// Method to increment view count
-PostSchema.methods.incrementViewCount = function () {
-  this.viewCount += 1;
+PostSchema.methods.addComment = function (userId, userName, content) {
+  this.comments.push({ userId, user: userName, content });
   return this.save();
 };
 

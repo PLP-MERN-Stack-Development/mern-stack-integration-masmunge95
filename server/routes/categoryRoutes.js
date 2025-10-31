@@ -1,6 +1,8 @@
 const express = require('express');
-const router = express.Router();
+const publicRouter = express.Router();
+const privateRouter = express.Router();
 const { validateCategory } = require('../middleware/validationMiddleware');
+const { requireRole } = require('../middleware/authMiddleware');
 const {
     getAllCategories,
     createCategory,
@@ -8,7 +10,11 @@ const {
     deleteCategory
 } = require('../controllers/categoryController');
 
-router.route('/').get(getAllCategories).post(validateCategory, createCategory);
-router.route('/:id').put(validateCategory, updateCategory).delete(deleteCategory);
+// --- Public Routes ---
+publicRouter.route('/').get(getAllCategories);
 
-module.exports = router;
+// --- Private (Authenticated) Routes ---
+privateRouter.route('/').post(requireRole('editor'), validateCategory, createCategory);
+privateRouter.route('/:id').put(requireRole('editor'), validateCategory, updateCategory).delete(requireRole('editor'), deleteCategory);
+
+module.exports = { public: publicRouter, private: privateRouter };

@@ -8,40 +8,24 @@ import Button from '@/components/Button';
 /**
  * CategoryManager component for managing blog categories.
  */
-const CategoryManager = () => {
-    const [categories, setCategories] = useState([]);
+const CategoryManager = ({ initialCategories, onCategoryChange, loading, error: initialError }) => {
     const { getToken } = useAuth();
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState(initialError);
     const [isAdding, setIsAdding] = useState(false);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const CATEGORIES_PER_PAGE = 5;
     const listContainerRef = useRef(null);
-
-    useEffect(() => {
-        const loadCategories = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                const fetchedData = await categoryService.getAllCategories();
-                setCategories(fetchedData.categories || []);
-            } catch (err) {
-                setError(`Failed to load categories: ${err.message}`);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadCategories();
-    }, []);
+    const categories = initialCategories;
 
     const handleAddCategory = async (categoryData) => {
         try {
             setIsAdding(true);
             setError(null);
-            const newCategory = await categoryService.createCategory(categoryData);
-            setCategories((prev) => [newCategory, ...prev]);
+            const token = await getToken({ template: 'Metadata-claims' });
+            const newCategory = await categoryService.createCategory(categoryData, token);
+            onCategoryChange((prev) => [newCategory, ...prev]);
         } catch (err) {
             setError(`Failed to add category: ${err.message}`);
         } finally {
@@ -52,8 +36,15 @@ const CategoryManager = () => {
     const handleUpdateCategory = async (id, updates) => {
         try {
             setError(null);
-            const updatedCategory = await categoryService.updateCategory(id, updates);
-            setCategories((prev) => prev.map((cat) => (cat._id === id ? updatedCategory : cat)));
+            const token = await getToken({ template: 'Metadata-claims' });
+            const updatedCategory = await categoryService.updateCategory(id, updates, token);
+            // If a new category was created (from a template), we need to replace the old one.
+            if (updatedCategory._id !== id) {
+                onCategoryChange((prev) => prev.map((cat) => (cat._id === id ? updatedCategory : cat)));
+            } else {
+                // Otherwise, just update the existing one.
+                onCategoryChange((prev) => prev.map((cat) => (cat._id === id ? updatedCategory : cat)));
+            }
         } catch (err) {
             setError(`Failed to update category: ${err.message}`);
         }
@@ -63,8 +54,9 @@ const CategoryManager = () => {
         if (!window.confirm('Are you sure you want to delete this category? This might affect existing posts.')) return;
         try {
             setError(null);
-            await categoryService.deleteCategory(id);
-            setCategories((prev) => prev.filter((cat) => cat._id !== id));
+            const token = await getToken({ template: 'Metadata-claims' });
+            await categoryService.deleteCategory(id, token);
+            onCategoryChange((prev) => prev.filter((cat) => cat._id !== id));
         } catch (err) {
             setError(`Failed to delete category: ${err.message}`);
         }

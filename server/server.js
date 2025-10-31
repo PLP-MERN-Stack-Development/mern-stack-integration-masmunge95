@@ -8,6 +8,7 @@ const path = require('path');
 const connectDB = require('./config/db');
 const logger = require('./middleware/logger');
 const errorHandler = require('./middleware/errorHandler');
+const { ClerkExpressRequireAuth, ClerkExpressWithAuth } = require('@clerk/clerk-sdk-node');
 
 // Load environment variables
 dotenv.config();
@@ -15,7 +16,7 @@ dotenv.config();
 // Import routes
 const postRoutes = require('./routes/postRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
-const uploadRoutes = require('./routes/uploadRoutes');
+const webhookRoutes = require('./routes/webhookRoutes');
 
 // Connect to database
 connectDB();
@@ -41,19 +42,36 @@ const corsOptions = {
   credentials: true,
 };
 
+// Webhook route needs to be before express.json()
+app.use('/api/webhooks', webhookRoutes);
+
+// Apply CORS middleware before any other routes to handle preflight requests
+// and add CORS headers to all responses.
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files
-app.use('/uploads', express.static(path.resolve(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Log requests in development mode
 app.use(logger);
 
-// API routes
-app.use('/api/posts', postRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/upload', uploadRoutes);
+// Define routers for public and private (authenticated) API routes
+const publicApiRouter = express.Router();
+const privateApiRouter = express.Router();
+
+// Apply Clerk authentication ONLY to the private router
+privateApiRouter.use(ClerkExpressRequireAuth());
+
+// Assign routes to the appropriate router
+publicApiRouter.use('/posts', postRoutes.public); // Public post routes (GET all, GET one)
+privateApiRouter.use('/posts', postRoutes.private); // Private post routes (CRUD)
+publicApiRouter.use('/categories', categoryRoutes.public); // Public category routes (GET all)
+privateApiRouter.use('/categories', categoryRoutes.private); // Private category routes (CRUD)
+
+app.use('/api', publicApiRouter);
+app.use('/api', privateApiRouter);
 
 // Root route
 app.get('/', (req, res) => {
