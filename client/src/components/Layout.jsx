@@ -14,10 +14,13 @@ export default function Layout({ children }) {
         <div className={`min-h-screen flex flex-col scroll-smooth ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
             <Header scrollTargetRef={scrollTargetRef} />
             <main className="flex-grow container mx-auto px-4 py-8 mt-16 scroll-mt-20">
-                {React.cloneElement(children, {
-                    ...children.props,
-                    setScrollTarget: (el) => (scrollTargetRef.current = el),
-                })}
+                {/* Conditionally inject the prop only for HomePage to avoid side effects on other pages */}
+                {children.type.name === 'HomePage'
+                    ? React.cloneElement(children, {
+                          ...children.props,
+                          setScrollTarget: (el) => (scrollTargetRef.current = el),
+                      })
+                    : children}
             </main>
             <Footer />
         </div>
