@@ -50,10 +50,10 @@ exports.getPostById = asyncHandler(async (req, res) => {
     // If req.auth exists, it means this request came through a private, authenticated route.
     if (req.auth) {
         const userRole = req.auth.sessionClaims?.metadata?.role;
-        const userId = req.auth.userId;
+        const userId = req.auth.sessionClaims?.sub; // Use .sub for the user ID, which is always present.
 
         // Only increment the view count if the user has the 'viewer' role.
-        if (userRole === 'viewer') {
+        if (userRole === 'viewer' && userId) {
             const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
             const userView = post.viewedBy.find(view => view.userId === userId);
 

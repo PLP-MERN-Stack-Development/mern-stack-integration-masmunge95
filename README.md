@@ -183,7 +183,12 @@ To deploy the backend, you can use a service like Render.
     -   **Build Command**: `npm install`
     -   **Start Command**: `npm start`
     -   **Node Version**: Select 18 or later.
-4.  **Add Environment Variables**: Go to the "Environment" tab and add the variables from your local `server/.env` file: `MONGO_URI`, `CLERK_SECRET_KEY`, and `CLERK_WEBHOOK_SECRET_PUBLISHED`. Also, add `NODE_ENV` with a value of `production`.
+4.  **Add Environment Variables**: Go to the "Environment" tab and add the following variables. **This is a critical step.**
+    -   `MONGO_URI`: Your MongoDB connection string.
+    -   `CLERK_SECRET_KEY`: Your Clerk Secret Key (starts with `sk_...`).
+    -   `CLERK_WEBHOOK_SECRET_PUBLISHED`: Your production webhook signing secret from the Clerk dashboard.
+    -   `NODE_ENV`: Set this to `production`.
+
 5.  **Create Web Service**: Click "Create Web Service". Render will build and deploy your backend.
 6.  **Update URLs**:
     -   Once deployed, copy the new backend URL and update the `VITE_API_URL` environment variable in your Netlify site settings.
@@ -222,6 +227,10 @@ To deploy the backend, you can use a service like Render.
 3. **API 404 Errors in Development**  
    - **Issue:** Frontend requests to `/api/...` return 404.  
    - **Fix:** A proxy in `vite.config.js` forwards `/api` and `/uploads` requests to the backend server running on `http://localhost:5000`.
+
+4. **500 Error on Deployed Backend (Render)**
+   - **Issue:** The deployed backend returns a 500 Internal Server Error, and logs show "Missing Clerk Secret Key".
+   - **Fix:** This means the `CLERK_SECRET_KEY` environment variable is missing or incorrect in your Render service. Go to your service's "Environment" tab in the Render dashboard and ensure the `CLERK_SECRET_KEY` is set correctly. It should be the key from your Clerk dashboard that starts with `sk_...`.
 
 ---
 
