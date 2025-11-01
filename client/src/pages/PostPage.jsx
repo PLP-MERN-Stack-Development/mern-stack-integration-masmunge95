@@ -4,6 +4,7 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 import Button from '@/components/Button';
 import { getFullImageUrl } from '@/services/api';
 import { postService } from '@/services/postService';
+import { Helmet } from 'react-helmet-async';
 import { generateMetaTags } from '@/utils/seoUtils';
 
 /**

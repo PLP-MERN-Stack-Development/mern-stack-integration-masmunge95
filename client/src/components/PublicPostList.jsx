@@ -22,7 +22,8 @@ export default function PublicPostList() {
   const [error, setError] = useState(null);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [tagSearch, setTagSearch] = useState('');
+  const [tagInput, setTagInput] = useState(''); // State for the input field
+  const [activeTagSearch, setActiveTagSearch] = useState(''); // State to trigger the search
 
   useEffect(() => {
     const fetchPublishedPosts = async () => {
@@ -30,7 +31,7 @@ export default function PublicPostList() {
         setLoading(true);
         // Fetch both posts and categories
         const [postData, categoryData] = await Promise.all([
-          postService.getAllPosts(1, 100, selectedCategory, tagSearch), // Fetch a large number for client-side filtering
+          postService.getAllPosts(1, 100, selectedCategory, activeTagSearch), // Use the active search term
           categoryService.getAllCategories(),
         ]);
         const data = postData;
@@ -54,7 +55,11 @@ export default function PublicPostList() {
       }
     };
     fetchPublishedPosts(); // Refetch when filters change
-  }, [selectedCategory, tagSearch]);
+  }, [selectedCategory, activeTagSearch]);
+
+  const handleSearch = () => {
+    setActiveTagSearch(tagInput);
+  };
 
   if (loading) return <p className="text-center p-12">Loading posts...</p>;
   if (error) return <p className="text-center p-12 text-red-500">{error}</p>;
@@ -75,13 +80,18 @@ export default function PublicPostList() {
             <option key={cat._id} value={cat._id}>{cat.name}</option>
           ))}
         </select>
-        <input
-          type="text"
-          value={tagSearch}
-          onChange={(e) => setTagSearch(e.target.value)}
-          placeholder="Search by tag..."
-          className="border border-gray-300 dark:border-gray-600 bg-transparent rounded-lg p-2 placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500 flex-1"
-        />
+        <div className="flex flex-1">
+          <input
+            type="text"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            placeholder="Enter a tag and click search..."
+            className="border border-gray-300 dark:border-gray-600 bg-transparent rounded-l-lg p-2 placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500 flex-grow"
+          />
+          <button onClick={handleSearch} className="bg-blue-600 text-white px-4 rounded-r-lg hover:bg-blue-700 transition-colors">
+            Search
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
