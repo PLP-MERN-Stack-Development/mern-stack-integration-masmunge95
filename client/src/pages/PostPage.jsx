@@ -39,7 +39,7 @@ export default function PostPage() {
         } finally {
             setLoading(false);
         }
-    }, [slug, isSignedIn, getToken]);
+    }, [slug, isSignedIn]);
 
     useEffect(() => {
         fetchPost();
