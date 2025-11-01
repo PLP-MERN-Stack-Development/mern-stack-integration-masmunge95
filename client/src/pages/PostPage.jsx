@@ -84,7 +84,6 @@ export default function PostPage() {
     const handleDeleteComment = async (commentId) => {
         if (window.confirm('Are you sure you want to delete this comment?')) {
             try {
-                await postService.deleteComment(post._id, commentId);
                 const token = await getToken({ template: 'Metadata-claims' });
                 await postService.deleteComment(post._id, commentId, token);
                 // Optimistically update UI
