@@ -35,8 +35,17 @@ export default function PublicPostList() {
         ]);
         const data = postData;
         const publishedPosts = data.posts.filter(p => p.status === 'published');
+        
+        // De-duplicate categories by name to ensure the filter dropdown is clean.
+        // We use a Map to ensure that we only keep the first occurrence of each category name.
+        const uniqueCategories = Array.from(
+          new Map(categoryData.categories.map(cat => [cat.name, cat])).values()
+        );
+
         setPosts(publishedPosts);
-        setCategories(categoryData.categories || []);
+        // Sort the unique categories alphabetically by name for a consistent order.
+        setCategories(uniqueCategories.sort((a, b) => a.name.localeCompare(b.name)) || []);
+
       } catch (err) {
         setError('Failed to load posts. Please try again later.');
         console.error(err);

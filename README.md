@@ -84,7 +84,7 @@ First, clone the project to your local machine.
 
 ```bash
 git clone https://github.com/PLP-MERN-Stack-Development/plp-mern-stack-development-classroom-mern-stack-integration-MERN-Stack-Week4.git
-cd MERN-Stack-Integration
+cd mern-blog
 ```
 
 ### 2. Backend Setup
@@ -156,6 +156,40 @@ npm run dev
 The application will be available at [http://localhost:5173](http://localhost:5173).  
 For local webhook testing, you will also need a third terminal running `ngrok http 5000`.
 
+### 6. Deploy to Netlify
+To deploy the frontend of this application, you will use Netlify. Since you won't have permissions to connect the original classroom repository, you must first create your own fork.
+
+1.  **Fork the Repository**: Go to the main repository page on GitHub and click the "Fork" button to create a copy under your own account.
+2.  **Create a New Netlify Site**: Log in to your Netlify account and click "Add new site" > "Import an existing project".
+3.  **Connect to GitHub**: Choose GitHub and authorize Netlify to access your repositories. Select the fork you just created.
+4.  **Configure Build Settings**: Configure the site with the following settings to ensure it builds correctly:
+    -   **Base directory**: `client`
+    -   **Build command**: `npm run build`
+    -   **Publish directory**: `client/dist`
+5.  **Add Environment Variables**: Before deploying, go to **Site configuration > Environment variables** and add the following:
+    -   `VITE_API_URL`: The URL of your deployed backend (e.g., from Render).
+    -   `VITE_CLERK_PUBLISHABLE_KEY`: Your Clerk publishable key.
+    -   `NPM_FLAGS`: Set the value to `--legacy-peer-deps`. This is crucial to prevent build failures due to peer dependency conflicts.
+6.  **Deploy Site**: Click "Deploy site". Netlify will start the build process and deploy your frontend.
+
+### 7. Deploy to Render (Backend)
+To deploy the backend, you can use a service like Render.
+
+1.  **Create a New Web Service**: In your Render dashboard, click "New +" and select "Web Service".
+2.  **Connect Repository**: Connect the GitHub repository fork you created.
+3.  **Configure Settings**: Fill in the details for your service:
+    -   **Name**: Give your service a name (e.g., `mern-blog-backend`).
+    -   **Root Directory**: `server`
+    -   **Build Command**: `npm install`
+    -   **Start Command**: `npm start`
+    -   **Node Version**: Select 18 or later.
+4.  **Add Environment Variables**: Go to the "Environment" tab and add the variables from your local `server/.env` file: `MONGO_URI`, `CLERK_SECRET_KEY`, and `CLERK_WEBHOOK_SECRET_PUBLISHED`. Also, add `NODE_ENV` with a value of `production`.
+5.  **Create Web Service**: Click "Create Web Service". Render will build and deploy your backend.
+6.  **Update URLs**:
+    -   Once deployed, copy the new backend URL and update the `VITE_API_URL` environment variable in your Netlify site settings.
+    -   Update your production webhook endpoint in the Clerk dashboard to point to your new Render URL (e.g., `https://<your-render-url>/api/webhooks/clerk`).
+
+
 ## API Documentation
 
 | Method   | Endpoint                       | Description                                      | Access        |
@@ -188,10 +222,6 @@ For local webhook testing, you will also need a third terminal running `ngrok ht
 3. **API 404 Errors in Development**  
    - **Issue:** Frontend requests to `/api/...` return 404.  
    - **Fix:** A proxy in `vite.config.js` forwards `/api` and `/uploads` requests to the backend server running on `http://localhost:5000`.
-
-4. **Netlify Deployment Build Failures**
-   - **Issue:** The build process on Netlify fails due to peer dependency conflicts.
-   - **Fix:** In your Netlify site settings, go to **Site configuration > Environment variables** and add a new variable: `NPM_FLAGS` with the value `--legacy-peer-deps`. This tells NPM to ignore peer dependency mismatches during installation.
 
 ---
 
